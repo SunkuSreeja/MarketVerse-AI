@@ -3,13 +3,25 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: MarketVerse AI - Stock market learning platform API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: simulation
+    description: Investment simulation operations
+  - name: psychology
+    description: Market psychology and emotion tracking
+  - name: scenario
+    description: Historical market scenarios and crash timelines
+  - name: portfolio
+    description: Portfolio and scoring operations
+  - name: challenge
+    description: AI challenge arena games
+  - name: gemini
+    description: Gemini AI mentor and analysis operations
 paths:
   /healthz:
     get:
@@ -24,6 +36,377 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ── Simulations ──────────────────────────────────────────────────────────────
+  /simulations:
+    get:
+      operationId: listSimulations
+      tags: [simulation]
+      summary: List all simulations for a session
+      responses:
+        "200":
+          description: List of simulations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Simulation"
+    post:
+      operationId: createSimulation
+      tags: [simulation]
+      summary: Create a new investment simulation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SimulationInput"
+      responses:
+        "201":
+          description: Created simulation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Simulation"
+
+  /simulations/{id}:
+    get:
+      operationId: getSimulation
+      tags: [simulation]
+      summary: Get a simulation with its outcome data
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Simulation details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Simulation"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /simulations/{id}/run:
+    post:
+      operationId: runSimulation
+      tags: [simulation]
+      summary: Run the future outcome simulation and get AI-generated projections
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Simulation outcome with projections
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimulationOutcome"
+
+  /simulations/summary:
+    get:
+      operationId: getSimulationSummary
+      tags: [simulation]
+      summary: Get aggregate simulation stats (wow endpoint)
+      responses:
+        "200":
+          description: Summary stats across all simulations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimulationSummary"
+
+  # ── Psychology / Emotion Tracking ────────────────────────────────────────────
+  /psychology/events:
+    post:
+      operationId: recordPsychologyEvent
+      tags: [psychology]
+      summary: Record a user psychology/emotion event (panic click, risky decision, etc.)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PsychologyEventInput"
+      responses:
+        "201":
+          description: Recorded event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PsychologyEvent"
+
+  /psychology/profile:
+    get:
+      operationId: getPsychologyProfile
+      tags: [psychology]
+      summary: Get the user's behavioral/emotional investor profile
+      responses:
+        "200":
+          description: Investor psychology profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PsychologyProfile"
+
+  # ── Historical Scenarios ──────────────────────────────────────────────────────
+  /scenarios:
+    get:
+      operationId: listScenarios
+      tags: [scenario]
+      summary: List all historical market crash scenarios
+      responses:
+        "200":
+          description: List of scenarios
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MarketScenario"
+
+  /scenarios/{id}:
+    get:
+      operationId: getScenario
+      tags: [scenario]
+      summary: Get a detailed market scenario with timeline events
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Scenario details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarketScenario"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  # ── Portfolio & Scoring ───────────────────────────────────────────────────────
+  /portfolio:
+    get:
+      operationId: getPortfolio
+      tags: [portfolio]
+      summary: Get user portfolio and investor scores
+      responses:
+        "200":
+          description: Portfolio with scores
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Portfolio"
+
+  /portfolio/scores:
+    get:
+      operationId: getInvestorScores
+      tags: [portfolio]
+      summary: Get detailed investor IQ and behavior scores (wow endpoint)
+      responses:
+        "200":
+          description: Investor scores breakdown
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvestorScores"
+
+  # ── Challenges ────────────────────────────────────────────────────────────────
+  /challenges:
+    get:
+      operationId: listChallenges
+      tags: [challenge]
+      summary: List available challenge games
+      responses:
+        "200":
+          description: List of challenges
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Challenge"
+
+  /challenges/{id}/attempt:
+    post:
+      operationId: submitChallengeAttempt
+      tags: [challenge]
+      summary: Submit an answer/decision for a challenge
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChallengeAttemptInput"
+      responses:
+        "200":
+          description: Attempt result with AI feedback
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChallengeAttemptResult"
+
+  # ── Gemini AI Mentor ──────────────────────────────────────────────────────────
+  /gemini/conversations:
+    get:
+      operationId: listGeminiConversations
+      tags: [gemini]
+      summary: List all AI mentor conversations
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GeminiConversation"
+    post:
+      operationId: createGeminiConversation
+      tags: [gemini]
+      summary: Create a new AI mentor conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GeminiConversationInput"
+      responses:
+        "201":
+          description: Created conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeminiConversation"
+
+  /gemini/conversations/{id}:
+    get:
+      operationId: getGeminiConversation
+      tags: [gemini]
+      summary: Get conversation with messages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Conversation with messages
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeminiConversationWithMessages"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeminiError"
+    delete:
+      operationId: deleteGeminiConversation
+      tags: [gemini]
+      summary: Delete a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeminiError"
+
+  /gemini/conversations/{id}/messages:
+    get:
+      operationId: listGeminiMessages
+      tags: [gemini]
+      summary: List messages in a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GeminiMessage"
+    post:
+      operationId: sendGeminiMessage
+      tags: [gemini]
+      summary: Send a message to the AI mentor (SSE stream)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GeminiMessageInput"
+      responses:
+        "200":
+          description: SSE stream of AI mentor response
+          content:
+            text/event-stream: {}
+
+  /gemini/analyze-decision:
+    post:
+      operationId: analyzeInvestmentDecision
+      tags: [gemini]
+      summary: AI analyzes a user's investment decision and returns emotional/behavioral insight
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DecisionAnalysisInput"
+      responses:
+        "200":
+          description: AI analysis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DecisionAnalysisResult"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +417,544 @@ components:
       required:
         - status
 
+    ApiError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    # ── Simulation ──────────────────────────────────────────────────────────────
+    Simulation:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        investmentStyle:
+          type: string
+          description: "conservative | moderate | aggressive | yolo"
+        monthlyAmount:
+          type: number
+        riskLevel:
+          type: integer
+          description: "1-10 scale"
+        diversification:
+          type: number
+          description: "0-100 percentage"
+        timeHorizonYears:
+          type: integer
+        startingAmount:
+          type: number
+        status:
+          type: string
+          description: "pending | running | complete"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - investmentStyle
+        - monthlyAmount
+        - riskLevel
+        - diversification
+        - timeHorizonYears
+        - startingAmount
+        - status
+        - createdAt
+
+    SimulationInput:
+      type: object
+      properties:
+        name:
+          type: string
+        investmentStyle:
+          type: string
+        monthlyAmount:
+          type: number
+        riskLevel:
+          type: integer
+        diversification:
+          type: number
+        timeHorizonYears:
+          type: integer
+        startingAmount:
+          type: number
+      required:
+        - name
+        - investmentStyle
+        - monthlyAmount
+        - riskLevel
+        - diversification
+        - timeHorizonYears
+        - startingAmount
+
+    SimulationOutcome:
+      type: object
+      properties:
+        simulationId:
+          type: integer
+        projectedValue:
+          type: number
+        bestCase:
+          type: number
+        worstCase:
+          type: number
+        crashRisk:
+          type: number
+          description: "0-100 percentage"
+        emotionalStressScore:
+          type: number
+          description: "0-100"
+        yearlyProjections:
+          type: array
+          items:
+            $ref: "#/components/schemas/YearlyProjection"
+        aiInsight:
+          type: string
+        alternativeStrategy:
+          type: string
+      required:
+        - simulationId
+        - projectedValue
+        - bestCase
+        - worstCase
+        - crashRisk
+        - emotionalStressScore
+        - yearlyProjections
+        - aiInsight
+        - alternativeStrategy
+
+    YearlyProjection:
+      type: object
+      properties:
+        year:
+          type: integer
+        value:
+          type: number
+        percentageGain:
+          type: number
+      required:
+        - year
+        - value
+        - percentageGain
+
+    SimulationSummary:
+      type: object
+      properties:
+        totalSimulations:
+          type: integer
+        avgProjectedGain:
+          type: number
+        mostPopularStyle:
+          type: string
+        avgRiskLevel:
+          type: number
+      required:
+        - totalSimulations
+        - avgProjectedGain
+        - mostPopularStyle
+        - avgRiskLevel
+
+    # ── Psychology ──────────────────────────────────────────────────────────────
+    PsychologyEvent:
+      type: object
+      properties:
+        id:
+          type: integer
+        eventType:
+          type: string
+          description: "panic_click | risky_decision | impulsive_buy | hesitation | fomo | panic_sell | hype_chase"
+        context:
+          type: ["string", "null"]
+        severity:
+          type: integer
+          description: "1-5 scale"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - eventType
+        - severity
+        - createdAt
+
+    PsychologyEventInput:
+      type: object
+      properties:
+        eventType:
+          type: string
+        context:
+          type: string
+        severity:
+          type: integer
+      required:
+        - eventType
+        - severity
+
+    PsychologyProfile:
+      type: object
+      properties:
+        dominantBias:
+          type: string
+          description: "e.g. FOMO investor, panic seller, disciplined, hype chaser"
+        panicScore:
+          type: number
+          description: "0-100"
+        greedScore:
+          type: number
+          description: "0-100"
+        disciplineScore:
+          type: number
+          description: "0-100"
+        totalEvents:
+          type: integer
+        topPatterns:
+          type: array
+          items:
+            type: string
+        aiAdaptation:
+          type: string
+          description: "AI-generated personalized learning tip"
+      required:
+        - dominantBias
+        - panicScore
+        - greedScore
+        - disciplineScore
+        - totalEvents
+        - topPatterns
+        - aiAdaptation
+
+    # ── Scenarios ───────────────────────────────────────────────────────────────
+    MarketScenario:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        year:
+          type: integer
+        category:
+          type: string
+          description: "crash | bubble | recovery | correction"
+        description:
+          type: string
+        peakDropPercent:
+          type: number
+        recoveryMonths:
+          type: integer
+        emotionalTheme:
+          type: string
+          description: "e.g. mass panic, greed euphoria, uncertainty"
+        timeline:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScenarioTimelineEvent"
+        smartInvestorLesson:
+          type: string
+      required:
+        - id
+        - title
+        - year
+        - category
+        - description
+        - peakDropPercent
+        - recoveryMonths
+        - emotionalTheme
+        - timeline
+        - smartInvestorLesson
+
+    ScenarioTimelineEvent:
+      type: object
+      properties:
+        month:
+          type: string
+        event:
+          type: string
+        marketMove:
+          type: number
+          description: "percentage change, negative for drops"
+        emotion:
+          type: string
+      required:
+        - month
+        - event
+        - marketMove
+        - emotion
+
+    # ── Portfolio & Scores ──────────────────────────────────────────────────────
+    Portfolio:
+      type: object
+      properties:
+        totalValue:
+          type: number
+        totalInvested:
+          type: number
+        gainLoss:
+          type: number
+        gainLossPercent:
+          type: number
+        holdings:
+          type: array
+          items:
+            $ref: "#/components/schemas/PortfolioHolding"
+        investorScores:
+          $ref: "#/components/schemas/InvestorScores"
+      required:
+        - totalValue
+        - totalInvested
+        - gainLoss
+        - gainLossPercent
+        - holdings
+        - investorScores
+
+    PortfolioHolding:
+      type: object
+      properties:
+        symbol:
+          type: string
+        name:
+          type: string
+        allocation:
+          type: number
+          description: "percentage"
+        currentValue:
+          type: number
+        gainLoss:
+          type: number
+      required:
+        - symbol
+        - name
+        - allocation
+        - currentValue
+        - gainLoss
+
+    InvestorScores:
+      type: object
+      properties:
+        investorIQ:
+          type: integer
+          description: "0-100"
+        disciplineScore:
+          type: integer
+          description: "0-100"
+        riskBalance:
+          type: integer
+          description: "0-100"
+        emotionalStability:
+          type: integer
+          description: "0-100"
+        overallRank:
+          type: string
+          description: "Novice | Apprentice | Analyst | Expert | Master"
+        badges:
+          type: array
+          items:
+            type: string
+      required:
+        - investorIQ
+        - disciplineScore
+        - riskBalance
+        - emotionalStability
+        - overallRank
+        - badges
+
+    # ── Challenges ──────────────────────────────────────────────────────────────
+    Challenge:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          description: "crash_survival | portfolio_builder | mistake_spotter | scam_detector"
+        difficulty:
+          type: string
+          description: "beginner | intermediate | advanced"
+        scenario:
+          type: string
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChallengeOption"
+        pointsReward:
+          type: integer
+      required:
+        - id
+        - title
+        - description
+        - category
+        - difficulty
+        - scenario
+        - options
+        - pointsReward
+
+    ChallengeOption:
+      type: object
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+      required:
+        - id
+        - text
+
+    ChallengeAttemptInput:
+      type: object
+      properties:
+        selectedOptionId:
+          type: string
+        timeSpentSeconds:
+          type: integer
+      required:
+        - selectedOptionId
+        - timeSpentSeconds
+
+    ChallengeAttemptResult:
+      type: object
+      properties:
+        correct:
+          type: boolean
+        pointsEarned:
+          type: integer
+        aiFeedback:
+          type: string
+        explanation:
+          type: string
+        emotionalInsight:
+          type: ["string", "null"]
+      required:
+        - correct
+        - pointsEarned
+        - aiFeedback
+        - explanation
+
+    # ── Decision Analysis ────────────────────────────────────────────────────────
+    DecisionAnalysisInput:
+      type: object
+      properties:
+        decision:
+          type: string
+          description: "Description of the investment decision made"
+        context:
+          type: string
+          description: "Market conditions at the time"
+        emotion:
+          type: ["string", "null"]
+          description: "Self-reported emotion: fear, greed, excitement, panic, neutral"
+      required:
+        - decision
+        - context
+
+    DecisionAnalysisResult:
+      type: object
+      properties:
+        biasDetected:
+          type: string
+        explanation:
+          type: string
+        historicalParallel:
+          type: ["string", "null"]
+        alternativeApproach:
+          type: string
+        emotionalRating:
+          type: string
+          description: "rational | emotional | highly emotional"
+        lessonLearned:
+          type: string
+      required:
+        - biasDetected
+        - explanation
+        - alternativeApproach
+        - emotionalRating
+        - lessonLearned
+
+    # ── Gemini AI ────────────────────────────────────────────────────────────────
+    GeminiConversation:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - createdAt
+
+    GeminiMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        conversationId:
+          type: integer
+        role:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - conversationId
+        - role
+        - content
+        - createdAt
+
+    GeminiConversationInput:
+      type: object
+      properties:
+        title:
+          type: string
+      required:
+        - title
+
+    GeminiMessageInput:
+      type: object
+      properties:
+        content:
+          type: string
+      required:
+        - content
+
+    GeminiConversationWithMessages:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/GeminiMessage"
+      required:
+        - id
+        - title
+        - createdAt
+        - messages
+
+    GeminiError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
