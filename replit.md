@@ -1,44 +1,70 @@
-# [Project name]
+# MarketVerse AI
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+An AI-powered stock market learning platform that teaches investing through simulations, psychology challenges, historical crash scenarios, AI mentoring, and gamified decision-making — cinematic dark futuristic aesthetic.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — run the API server (port 8080, proxied to /api)
+- `pnpm --filter @workspace/marketverse run dev` — run the frontend (React+Vite)
 - `pnpm run typecheck` — full typecheck across all packages
+- `pnpm run typecheck:libs` — build composite lib declarations (run before api-server typecheck)
 - `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
+- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `GEMINI_API_KEY` — Google Gemini API key (direct, not Replit AI integration)
+- Required env: `SESSION_SECRET` — Express session secret
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
+- Frontend: React + Vite + Wouter routing + Framer Motion + Recharts + TanStack Query
 - API: Express 5
 - DB: PostgreSQL + Drizzle ORM
+- AI: Google Gemini 2.5 Flash via `@google/genai` SDK (GEMINI_API_KEY)
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
 - Build: esbuild (CJS bundle)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/marketverse/` — React+Vite frontend
+- `artifacts/api-server/` — Express backend
+- `lib/db/src/schema/` — Drizzle ORM table definitions (source of truth for DB)
+- `lib/api-spec/openapi.yaml` — OpenAPI spec (source of truth for API contract)
+- `lib/api-client-react/src/generated/` — Auto-generated React Query hooks + Zod schemas
+- `lib/integrations-gemini-ai/` — Gemini AI client wrapper
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Contract-first API: OpenAPI spec → Orval codegen → typed React Query hooks + Zod validators
+- SSE streaming for AI mentor chat: raw `fetch` on client (not generated hooks) → token-by-token rendering
+- `@google/*` packages are externalized in esbuild config (not bundled, resolved at runtime)
+- Route ordering: `/simulations/summary` must appear before `/simulations/:id` in Express
+- Gemini image client (`lib/integrations-gemini-ai/src/image/client.ts`) falls back to `GEMINI_API_KEY` if Replit AI integration env vars aren't present
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- **Landing** — cinematic hero with feature cards
+- **Universe** — command center: investor scores, psychology summary, quick navigation
+- **Simulator** — configure risk/time horizon via sliders, Recharts projection chart
+- **Psychology Engine** — biometric heartbeat animation, emotional event tracker, behavioral bias analysis
+- **AI Mentor** — streaming Gemini chat, persistent conversation history
+- **Historical Scenarios** — 4 seeded crashes (2008, COVID, Dot-Com, Harshad Mehta 1992) with Recharts timelines
+- **Challenges Arena** — 5 gamified decision challenges with AI feedback + scoring
+- **Portfolio** — pie charts, holdings table, performance metrics
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Dark futuristic aesthetic with neon accents (electric blue, emerald green, amber)
+- Indian market context (₹ currency, Nifty, Harshad Mehta scenario)
+- Gemini API key provided directly by user (not via Replit AI Integrations)
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Always run `pnpm run typecheck:libs` before `pnpm --filter @workspace/api-server run typecheck`
+- DB schema tables: `conversations`, `messages`, `simulationsTable`, `psychologyEventsTable`, `scenariosTable`, `portfolioTable`, `challengesTable`
+- `@google/genai` must be in api-server `dependencies` (not just integrations-gemini-ai lib) since it's externalized in esbuild
 
 ## Pointers
 

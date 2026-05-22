@@ -3,25 +3,38 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
+import { SidebarLayout } from "@/components/layout/SidebarLayout";
+import Landing from "@/pages/Landing";
+import Universe from "@/pages/Universe";
+import Simulator from "@/pages/Simulator";
+import Psychology from "@/pages/Psychology";
+import Mentor from "@/pages/Mentor";
+import Scenarios from "@/pages/Scenarios";
+import Challenges from "@/pages/Challenges";
+import Portfolio from "@/pages/Portfolio";
 
 const queryClient = new QueryClient();
 
-function Home() {
-  return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-900">Replit Agent is building...</h1>
-        <p className="mt-2 text-sm text-gray-600">Your app will appear here once it's ready.</p>
-      </div>
-    </div>
-  );
-}
-
-function Router() {
+function AppRouter() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
-      <Route component={NotFound} />
+      <Route path="/" component={Landing} />
+      
+      {/* Protected routes with sidebar */}
+      <Route path="/:rest*">
+        <SidebarLayout>
+          <Switch>
+            <Route path="/universe" component={Universe} />
+            <Route path="/simulator" component={Simulator} />
+            <Route path="/psychology" component={Psychology} />
+            <Route path="/mentor" component={Mentor} />
+            <Route path="/scenarios" component={Scenarios} />
+            <Route path="/challenges" component={Challenges} />
+            <Route path="/portfolio" component={Portfolio} />
+            <Route component={NotFound} />
+          </Switch>
+        </SidebarLayout>
+      </Route>
     </Switch>
   );
 }
@@ -31,7 +44,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
+          <AppRouter />
         </WouterRouter>
         <Toaster />
       </TooltipProvider>
