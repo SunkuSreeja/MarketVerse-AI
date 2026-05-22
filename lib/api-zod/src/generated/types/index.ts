@@ -7,6 +7,10 @@
  */
 
 export * from './apiError';
+export * from './candle';
+export * from './candleData';
+export * from './candleExplainInput';
+export * from './candleExplanation';
 export * from './challenge';
 export * from './challengeAttemptInput';
 export * from './challengeAttemptResult';
@@ -19,14 +23,18 @@ export * from './geminiConversationWithMessages';
 export * from './geminiError';
 export * from './geminiMessage';
 export * from './geminiMessageInput';
+export * from './getMarketCandlesParams';
 export * from './healthStatus';
 export * from './investorScores';
+export * from './marketQuote';
 export * from './marketScenario';
 export * from './portfolio';
 export * from './portfolioHolding';
 export * from './psychologyEvent';
 export * from './psychologyEventInput';
 export * from './psychologyProfile';
+export * from './replayStep';
+export * from './scenarioReplay';
 export * from './scenarioTimelineEvent';
 export * from './simulation';
 export * from './simulationInput';

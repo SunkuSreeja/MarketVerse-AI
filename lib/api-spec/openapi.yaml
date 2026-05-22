@@ -22,6 +22,8 @@ tags:
     description: AI challenge arena games
   - name: gemini
     description: Gemini AI mentor and analysis operations
+  - name: market
+    description: Live market data, candlestick charts, and quotes
 paths:
   /healthz:
     get:
@@ -387,6 +389,124 @@ paths:
           description: SSE stream of AI mentor response
           content:
             text/event-stream: {}
+
+  # ── Live Market Data ─────────────────────────────────────────────────────────
+  /market/quote/{symbol}:
+    get:
+      operationId: getMarketQuote
+      tags: [market]
+      summary: Get real-time or recent quote for a stock/index symbol
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Market quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarketQuote"
+        "404":
+          description: Symbol not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /market/candles/{symbol}:
+    get:
+      operationId: getMarketCandles
+      tags: [market]
+      summary: Get historical OHLCV candlestick data for a symbol
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: period
+          in: query
+          required: false
+          schema:
+            type: string
+            description: "1mo | 3mo | 6mo | 1y | 2y | 5y"
+            default: "1y"
+        - name: interval
+          in: query
+          required: false
+          schema:
+            type: string
+            description: "1d | 1wk | 1mo"
+            default: "1d"
+      responses:
+        "200":
+          description: Candlestick data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CandleData"
+
+  /market/explain-candle:
+    post:
+      operationId: explainCandle
+      tags: [market]
+      summary: AI explains a candlestick pattern in beginner-friendly language
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CandleExplainInput"
+      responses:
+        "200":
+          description: AI candle explanation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CandleExplanation"
+
+  /market/watchlist:
+    get:
+      operationId: getWatchlist
+      tags: [market]
+      summary: Get quotes for the default watchlist (major Indian + global indices)
+      responses:
+        "200":
+          description: Watchlist quotes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MarketQuote"
+
+  /scenarios/{id}/replay:
+    get:
+      operationId: getScenarioReplay
+      tags: [scenario]
+      summary: Get step-by-step candle replay data for a historical scenario
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Replay steps with candle data and decision moments
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScenarioReplay"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
 
   /gemini/analyze-decision:
     post:
@@ -958,3 +1078,185 @@ components:
           type: string
       required:
         - error
+
+    # ── Market Data ──────────────────────────────────────────────────────────────
+    MarketQuote:
+      type: object
+      properties:
+        symbol:
+          type: string
+        shortName:
+          type: string
+        price:
+          type: number
+        change:
+          type: number
+        changePercent:
+          type: number
+        volume:
+          type: number
+        marketCap:
+          type: ["number", "null"]
+        high52w:
+          type: ["number", "null"]
+        low52w:
+          type: ["number", "null"]
+        currency:
+          type: string
+        exchange:
+          type: string
+        marketState:
+          type: string
+          description: "REGULAR | PRE | POST | CLOSED"
+      required:
+        - symbol
+        - shortName
+        - price
+        - change
+        - changePercent
+        - volume
+        - currency
+        - exchange
+        - marketState
+
+    Candle:
+      type: object
+      properties:
+        time:
+          type: string
+          description: "ISO date string YYYY-MM-DD"
+        open:
+          type: number
+        high:
+          type: number
+        low:
+          type: number
+        close:
+          type: number
+        volume:
+          type: number
+      required:
+        - time
+        - open
+        - high
+        - low
+        - close
+        - volume
+
+    CandleData:
+      type: object
+      properties:
+        symbol:
+          type: string
+        interval:
+          type: string
+        candles:
+          type: array
+          items:
+            $ref: "#/components/schemas/Candle"
+      required:
+        - symbol
+        - interval
+        - candles
+
+    CandleExplainInput:
+      type: object
+      properties:
+        open:
+          type: number
+        high:
+          type: number
+        low:
+          type: number
+        close:
+          type: number
+        volume:
+          type: number
+        previousClose:
+          type: ["number", "null"]
+        context:
+          type: ["string", "null"]
+          description: "e.g. crash context, bull market, etc."
+      required:
+        - open
+        - high
+        - low
+        - close
+        - volume
+
+    CandleExplanation:
+      type: object
+      properties:
+        pattern:
+          type: string
+          description: "e.g. Bearish Engulfing, Doji, Hammer, Long Red Candle"
+        sentiment:
+          type: string
+          description: "bullish | bearish | neutral"
+        explanation:
+          type: string
+          description: "Beginner-friendly explanation"
+        buyerSellerPressure:
+          type: string
+        beginnerMistake:
+          type: string
+        expertThinking:
+          type: string
+        volatilityNote:
+          type: string
+      required:
+        - pattern
+        - sentiment
+        - explanation
+        - buyerSellerPressure
+        - beginnerMistake
+        - expertThinking
+        - volatilityNote
+
+    ReplayStep:
+      type: object
+      properties:
+        stepIndex:
+          type: integer
+        candle:
+          $ref: "#/components/schemas/Candle"
+        narration:
+          type: string
+          description: "Cinematic emotional narration for this moment"
+        emotion:
+          type: string
+          description: "fear | greed | panic | euphoria | uncertainty | recovery"
+        decisionMoment:
+          type: boolean
+          description: "Whether this step is a key Buy/Sell/Hold decision point"
+        decisionPrompt:
+          type: ["string", "null"]
+          description: "Question to ask user at this decision moment"
+      required:
+        - stepIndex
+        - candle
+        - narration
+        - emotion
+        - decisionMoment
+
+    ScenarioReplay:
+      type: object
+      properties:
+        scenarioId:
+          type: integer
+        title:
+          type: string
+        totalSteps:
+          type: integer
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReplayStep"
+        finalLesson:
+          type: string
+      required:
+        - scenarioId
+        - title
+        - totalSteps
+        - steps
+        - finalLesson

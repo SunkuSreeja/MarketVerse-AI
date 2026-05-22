@@ -21,6 +21,9 @@ import type {
 
 import type {
   ApiError,
+  CandleData,
+  CandleExplainInput,
+  CandleExplanation,
   Challenge,
   ChallengeAttemptInput,
   ChallengeAttemptResult,
@@ -32,13 +35,16 @@ import type {
   GeminiError,
   GeminiMessage,
   GeminiMessageInput,
+  GetMarketCandlesParams,
   HealthStatus,
   InvestorScores,
+  MarketQuote,
   MarketScenario,
   Portfolio,
   PsychologyEvent,
   PsychologyEventInput,
   PsychologyProfile,
+  ScenarioReplay,
   Simulation,
   SimulationInput,
   SimulationOutcome,
@@ -1555,6 +1561,397 @@ export const useSendGeminiMessage = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getSendGeminiMessageMutationOptions(options));
     }
+
+export const getGetMarketQuoteUrl = (symbol: string,) => {
+
+
+
+
+  return `/api/market/quote/${symbol}`
+}
+
+/**
+ * @summary Get real-time or recent quote for a stock/index symbol
+ */
+export const getMarketQuote = async (symbol: string, options?: RequestInit): Promise<MarketQuote> => {
+
+  return customFetch<MarketQuote>(getGetMarketQuoteUrl(symbol),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMarketQuoteQueryKey = (symbol: string,) => {
+    return [
+    `/api/market/quote/${symbol}`
+    ] as const;
+    }
+
+
+export const getGetMarketQuoteQueryOptions = <TData = Awaited<ReturnType<typeof getMarketQuote>>, TError = ErrorType<ApiError>>(symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMarketQuote>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMarketQuoteQueryKey(symbol);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMarketQuote>>> = ({ signal }) => getMarketQuote(symbol, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMarketQuote>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMarketQuoteQueryResult = NonNullable<Awaited<ReturnType<typeof getMarketQuote>>>
+export type GetMarketQuoteQueryError = ErrorType<ApiError>
+
+
+/**
+ * @summary Get real-time or recent quote for a stock/index symbol
+ */
+
+export function useGetMarketQuote<TData = Awaited<ReturnType<typeof getMarketQuote>>, TError = ErrorType<ApiError>>(
+ symbol: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMarketQuote>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMarketQuoteQueryOptions(symbol,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetMarketCandlesUrl = (symbol: string,
+    params?: GetMarketCandlesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/market/candles/${symbol}?${stringifiedParams}` : `/api/market/candles/${symbol}`
+}
+
+/**
+ * @summary Get historical OHLCV candlestick data for a symbol
+ */
+export const getMarketCandles = async (symbol: string,
+    params?: GetMarketCandlesParams, options?: RequestInit): Promise<CandleData> => {
+
+  return customFetch<CandleData>(getGetMarketCandlesUrl(symbol,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMarketCandlesQueryKey = (symbol: string,
+    params?: GetMarketCandlesParams,) => {
+    return [
+    `/api/market/candles/${symbol}`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetMarketCandlesQueryOptions = <TData = Awaited<ReturnType<typeof getMarketCandles>>, TError = ErrorType<unknown>>(symbol: string,
+    params?: GetMarketCandlesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMarketCandles>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMarketCandlesQueryKey(symbol,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMarketCandles>>> = ({ signal }) => getMarketCandles(symbol,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(symbol), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMarketCandles>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMarketCandlesQueryResult = NonNullable<Awaited<ReturnType<typeof getMarketCandles>>>
+export type GetMarketCandlesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get historical OHLCV candlestick data for a symbol
+ */
+
+export function useGetMarketCandles<TData = Awaited<ReturnType<typeof getMarketCandles>>, TError = ErrorType<unknown>>(
+ symbol: string,
+    params?: GetMarketCandlesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMarketCandles>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMarketCandlesQueryOptions(symbol,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getExplainCandleUrl = () => {
+
+
+
+
+  return `/api/market/explain-candle`
+}
+
+/**
+ * @summary AI explains a candlestick pattern in beginner-friendly language
+ */
+export const explainCandle = async (candleExplainInput: CandleExplainInput, options?: RequestInit): Promise<CandleExplanation> => {
+
+  return customFetch<CandleExplanation>(getExplainCandleUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      candleExplainInput,)
+  }
+);}
+
+
+
+
+export const getExplainCandleMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof explainCandle>>, TError,{data: BodyType<CandleExplainInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof explainCandle>>, TError,{data: BodyType<CandleExplainInput>}, TContext> => {
+
+const mutationKey = ['explainCandle'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof explainCandle>>, {data: BodyType<CandleExplainInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  explainCandle(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ExplainCandleMutationResult = NonNullable<Awaited<ReturnType<typeof explainCandle>>>
+    export type ExplainCandleMutationBody = BodyType<CandleExplainInput>
+    export type ExplainCandleMutationError = ErrorType<unknown>
+
+    /**
+ * @summary AI explains a candlestick pattern in beginner-friendly language
+ */
+export const useExplainCandle = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof explainCandle>>, TError,{data: BodyType<CandleExplainInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof explainCandle>>,
+        TError,
+        {data: BodyType<CandleExplainInput>},
+        TContext
+      > => {
+      return useMutation(getExplainCandleMutationOptions(options));
+    }
+
+export const getGetWatchlistUrl = () => {
+
+
+
+
+  return `/api/market/watchlist`
+}
+
+/**
+ * @summary Get quotes for the default watchlist (major Indian + global indices)
+ */
+export const getWatchlist = async ( options?: RequestInit): Promise<MarketQuote[]> => {
+
+  return customFetch<MarketQuote[]>(getGetWatchlistUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWatchlistQueryKey = () => {
+    return [
+    `/api/market/watchlist`
+    ] as const;
+    }
+
+
+export const getGetWatchlistQueryOptions = <TData = Awaited<ReturnType<typeof getWatchlist>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWatchlist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWatchlistQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWatchlist>>> = ({ signal }) => getWatchlist({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWatchlist>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWatchlistQueryResult = NonNullable<Awaited<ReturnType<typeof getWatchlist>>>
+export type GetWatchlistQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get quotes for the default watchlist (major Indian + global indices)
+ */
+
+export function useGetWatchlist<TData = Awaited<ReturnType<typeof getWatchlist>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWatchlist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWatchlistQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetScenarioReplayUrl = (id: number,) => {
+
+
+
+
+  return `/api/scenarios/${id}/replay`
+}
+
+/**
+ * @summary Get step-by-step candle replay data for a historical scenario
+ */
+export const getScenarioReplay = async (id: number, options?: RequestInit): Promise<ScenarioReplay> => {
+
+  return customFetch<ScenarioReplay>(getGetScenarioReplayUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetScenarioReplayQueryKey = (id: number,) => {
+    return [
+    `/api/scenarios/${id}/replay`
+    ] as const;
+    }
+
+
+export const getGetScenarioReplayQueryOptions = <TData = Awaited<ReturnType<typeof getScenarioReplay>>, TError = ErrorType<ApiError>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getScenarioReplay>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetScenarioReplayQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getScenarioReplay>>> = ({ signal }) => getScenarioReplay(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getScenarioReplay>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetScenarioReplayQueryResult = NonNullable<Awaited<ReturnType<typeof getScenarioReplay>>>
+export type GetScenarioReplayQueryError = ErrorType<ApiError>
+
+
+/**
+ * @summary Get step-by-step candle replay data for a historical scenario
+ */
+
+export function useGetScenarioReplay<TData = Awaited<ReturnType<typeof getScenarioReplay>>, TError = ErrorType<ApiError>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getScenarioReplay>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetScenarioReplayQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getAnalyzeInvestmentDecisionUrl = () => {
 

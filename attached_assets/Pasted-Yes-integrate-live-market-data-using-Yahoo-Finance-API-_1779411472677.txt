@@ -1,0 +1,140 @@
+Yes — integrate live market data using Yahoo Finance API first for simplicity, reliability, and realistic simulations.
+
+Do NOT rebuild or restructure the project.
+
+Keep the current architecture, routes, database schema, OpenAPI setup, Gemini integration, and frontend structure intact.
+
+From this point onward, focus ONLY on polishing, realism, immersion, interactivity, and learning experience quality.
+
+I want MarketVerse AI to become a cinematic and emotionally intelligent stock market learning universe — not just a finance dashboard.
+
+PRIORITY IMPROVEMENTS:
+
+1. LIVE MARKET EXPERIENCE
+   Integrate real-time or near real-time market data into:
+
+* candlestick charts
+* portfolio simulations
+* stock detail pages
+* market replay timelines
+
+Add:
+
+* live candle movement
+* realistic chart animations
+* ticker updates
+* gain/loss transitions
+* volume bars
+* market sentiment indicators
+
+2. INTERACTIVE CANDLE LEARNING
+   When users hover or click a candle:
+
+* explain bullish/bearish meaning
+* explain volatility
+* explain buyer vs seller pressure
+* explain common beginner mistakes
+
+AI should explain visually and in beginner-friendly language.
+
+Example:
+“This long red candle shows panic selling during fear-driven market conditions.”
+
+3. MARKET REPLAY MODE
+   Create immersive replay experiences for:
+
+* 2008 Financial Crisis
+* COVID Crash
+* Dot-com Bubble
+* Harshad Mehta Era
+
+Users should:
+
+* watch market movement unfold
+* make Buy / Sell / Hold decisions
+* experience consequences
+* receive AI mentor feedback
+
+Add:
+
+* cinematic timeline progression
+* emotional narration
+* candle-by-candle replay
+* interactive pause moments
+
+4. EMOTIONAL INVESTING ENGINE
+   Track:
+
+* panic selling
+* FOMO buying
+* impulsive decisions
+* overconfidence
+* revenge trading
+
+Create:
+
+* Emotion Meter
+* Investor Discipline Score
+* Risk Intelligence Score
+
+AI mentor should adapt based on behavior patterns.
+
+5. INTERACTIVE LEARNING EXPERIENCE
+   I want learning to feel immersive instead of theoretical.
+
+Add:
+
+* drag-and-drop diversification learning
+* risk balancing simulator
+* portfolio stress testing
+* compound growth visualizer
+* support/resistance interaction mode
+* beginner trading walkthroughs
+
+6. BEGINNER-FRIENDLY AI TEACHING
+   Many users do not understand:
+
+* candles
+* indicators
+* trading psychology
+* support/resistance
+* long-term investing
+
+So whenever users interact with charts or indicators, AI should explain:
+
+* what is happening
+* why it matters
+* what beginners usually do wrong
+* how experienced investors think
+
+7. CINEMATIC UI POLISH
+   Upgrade the visual experience significantly.
+
+Add:
+
+* glassmorphism
+* holographic UI effects
+* glowing chart effects
+* ambient gradients
+* smooth transitions
+* premium animations
+* futuristic onboarding
+* immersive interactions
+
+The app should feel like:
+
+* a futuristic finance documentary
+* an AI investing mentor
+* an interactive market simulator
+
+NOT a boring dashboard.
+
+IMPORTANT:
+
+* Preserve all existing working systems
+* Improve incrementally
+* Avoid breaking current APIs or architecture
+* Prioritize polish, immersion, realism, and emotional learning
+
+Main goal:
+Make the experience unforgettable within the first 30 seconds.

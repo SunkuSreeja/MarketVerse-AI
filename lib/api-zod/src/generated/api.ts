@@ -335,6 +335,132 @@ export const SendGeminiMessageBody = zod.object({
 
 
 /**
+ * @summary Get real-time or recent quote for a stock/index symbol
+ */
+export const GetMarketQuoteParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const GetMarketQuoteResponse = zod.object({
+  "symbol": zod.string(),
+  "shortName": zod.string(),
+  "price": zod.number(),
+  "change": zod.number(),
+  "changePercent": zod.number(),
+  "volume": zod.number(),
+  "marketCap": zod.number().nullish(),
+  "high52w": zod.number().nullish(),
+  "low52w": zod.number().nullish(),
+  "currency": zod.string(),
+  "exchange": zod.string(),
+  "marketState": zod.string().describe('REGULAR | PRE | POST | CLOSED')
+})
+
+
+/**
+ * @summary Get historical OHLCV candlestick data for a symbol
+ */
+export const GetMarketCandlesParams = zod.object({
+  "symbol": zod.coerce.string()
+})
+
+export const getMarketCandlesQueryPeriodDefault = `1y`;
+export const getMarketCandlesQueryIntervalDefault = `1d`;
+
+export const GetMarketCandlesQueryParams = zod.object({
+  "period": zod.coerce.string().default(getMarketCandlesQueryPeriodDefault),
+  "interval": zod.coerce.string().default(getMarketCandlesQueryIntervalDefault)
+})
+
+export const GetMarketCandlesResponse = zod.object({
+  "symbol": zod.string(),
+  "interval": zod.string(),
+  "candles": zod.array(zod.object({
+  "time": zod.string().describe('ISO date string YYYY-MM-DD'),
+  "open": zod.number(),
+  "high": zod.number(),
+  "low": zod.number(),
+  "close": zod.number(),
+  "volume": zod.number()
+}))
+})
+
+
+/**
+ * @summary AI explains a candlestick pattern in beginner-friendly language
+ */
+export const ExplainCandleBody = zod.object({
+  "open": zod.number(),
+  "high": zod.number(),
+  "low": zod.number(),
+  "close": zod.number(),
+  "volume": zod.number(),
+  "previousClose": zod.number().nullish(),
+  "context": zod.string().nullish().describe('e.g. crash context, bull market, etc.')
+})
+
+export const ExplainCandleResponse = zod.object({
+  "pattern": zod.string().describe('e.g. Bearish Engulfing, Doji, Hammer, Long Red Candle'),
+  "sentiment": zod.string().describe('bullish | bearish | neutral'),
+  "explanation": zod.string().describe('Beginner-friendly explanation'),
+  "buyerSellerPressure": zod.string(),
+  "beginnerMistake": zod.string(),
+  "expertThinking": zod.string(),
+  "volatilityNote": zod.string()
+})
+
+
+/**
+ * @summary Get quotes for the default watchlist (major Indian + global indices)
+ */
+export const GetWatchlistResponseItem = zod.object({
+  "symbol": zod.string(),
+  "shortName": zod.string(),
+  "price": zod.number(),
+  "change": zod.number(),
+  "changePercent": zod.number(),
+  "volume": zod.number(),
+  "marketCap": zod.number().nullish(),
+  "high52w": zod.number().nullish(),
+  "low52w": zod.number().nullish(),
+  "currency": zod.string(),
+  "exchange": zod.string(),
+  "marketState": zod.string().describe('REGULAR | PRE | POST | CLOSED')
+})
+export const GetWatchlistResponse = zod.array(GetWatchlistResponseItem)
+
+
+/**
+ * @summary Get step-by-step candle replay data for a historical scenario
+ */
+export const GetScenarioReplayParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetScenarioReplayResponse = zod.object({
+  "scenarioId": zod.number(),
+  "title": zod.string(),
+  "totalSteps": zod.number(),
+  "steps": zod.array(zod.object({
+  "stepIndex": zod.number(),
+  "candle": zod.object({
+  "time": zod.string().describe('ISO date string YYYY-MM-DD'),
+  "open": zod.number(),
+  "high": zod.number(),
+  "low": zod.number(),
+  "close": zod.number(),
+  "volume": zod.number()
+}),
+  "narration": zod.string().describe('Cinematic emotional narration for this moment'),
+  "emotion": zod.string().describe('fear | greed | panic | euphoria | uncertainty | recovery'),
+  "decisionMoment": zod.boolean().describe('Whether this step is a key Buy\/Sell\/Hold decision point'),
+  "decisionPrompt": zod.string().nullish().describe('Question to ask user at this decision moment')
+})),
+  "finalLesson": zod.string()
+})
+
+
+/**
  * @summary AI analyzes a user's investment decision and returns emotional/behavioral insight
  */
 export const AnalyzeInvestmentDecisionBody = zod.object({

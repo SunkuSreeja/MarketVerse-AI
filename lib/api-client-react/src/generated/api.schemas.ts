@@ -242,3 +242,101 @@ export interface GeminiError {
   error: string;
 }
 
+export interface MarketQuote {
+  symbol: string;
+  shortName: string;
+  price: number;
+  change: number;
+  changePercent: number;
+  volume: number;
+  /** @nullable */
+  marketCap?: number | null;
+  /** @nullable */
+  high52w?: number | null;
+  /** @nullable */
+  low52w?: number | null;
+  currency: string;
+  exchange: string;
+  /** REGULAR | PRE | POST | CLOSED */
+  marketState: string;
+}
+
+export interface Candle {
+  /** ISO date string YYYY-MM-DD */
+  time: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+export interface CandleData {
+  symbol: string;
+  interval: string;
+  candles: Candle[];
+}
+
+export interface CandleExplainInput {
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+  /** @nullable */
+  previousClose?: number | null;
+  /**
+     * e.g. crash context, bull market, etc.
+     * @nullable
+     */
+  context?: string | null;
+}
+
+export interface CandleExplanation {
+  /** e.g. Bearish Engulfing, Doji, Hammer, Long Red Candle */
+  pattern: string;
+  /** bullish | bearish | neutral */
+  sentiment: string;
+  /** Beginner-friendly explanation */
+  explanation: string;
+  buyerSellerPressure: string;
+  beginnerMistake: string;
+  expertThinking: string;
+  volatilityNote: string;
+}
+
+export interface ReplayStep {
+  stepIndex: number;
+  candle: Candle;
+  /** Cinematic emotional narration for this moment */
+  narration: string;
+  /** fear | greed | panic | euphoria | uncertainty | recovery */
+  emotion: string;
+  /** Whether this step is a key Buy/Sell/Hold decision point */
+  decisionMoment: boolean;
+  /**
+     * Question to ask user at this decision moment
+     * @nullable
+     */
+  decisionPrompt?: string | null;
+}
+
+export interface ScenarioReplay {
+  scenarioId: number;
+  title: string;
+  totalSteps: number;
+  steps: ReplayStep[];
+  finalLesson: string;
+}
+
+export type GetMarketCandlesParams = {
+/**
+ * 1mo | 3mo | 6mo | 1y | 2y | 5y
+ */
+period?: string;
+/**
+ * 1d | 1wk | 1mo
+ */
+interval?: string;
+};
+
