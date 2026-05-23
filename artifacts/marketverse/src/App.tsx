@@ -12,6 +12,7 @@ import Mentor from "@/pages/Mentor";
 import Scenarios from "@/pages/Scenarios";
 import Challenges from "@/pages/Challenges";
 import Portfolio from "@/pages/Portfolio";
+import MarketWatch from "@/pages/MarketWatch";
 
 const queryClient = new QueryClient();
 
@@ -20,7 +21,6 @@ function AppRouter() {
     <Switch>
       <Route path="/" component={Landing} />
       
-      {/* Protected routes with sidebar */}
       <Route path="/:rest*">
         <SidebarLayout>
           <Switch>
@@ -31,6 +31,7 @@ function AppRouter() {
             <Route path="/scenarios" component={Scenarios} />
             <Route path="/challenges" component={Challenges} />
             <Route path="/portfolio" component={Portfolio} />
+            <Route path="/market" component={MarketWatch} />
             <Route component={NotFound} />
           </Switch>
         </SidebarLayout>

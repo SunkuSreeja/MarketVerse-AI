@@ -1,183 +1,311 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useListChallenges, useSubmitChallengeAttempt, Challenge } from "@workspace/api-client-react";
-import { Swords, CheckCircle2, XCircle, ShieldAlert, AlertTriangle, ArrowRight, Sparkles } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { useListChallenges, useSubmitChallengeAttempt, type Challenge } from "@workspace/api-client-react";
+import { Swords, CheckCircle2, XCircle, ShieldAlert, AlertTriangle, ArrowRight, Sparkles, Clock, Trophy, Brain, Zap, Target } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+
+const DIFFICULTY_CONFIG: Record<string, { color: string; glow: string; label: string; icon: React.ElementType }> = {
+  beginner:     { color: '#00ff88', glow: 'rgba(0,255,136,0.3)',   label: 'Beginner',     icon: Target },
+  intermediate: { color: '#00d4ff', glow: 'rgba(0,212,255,0.3)',   label: 'Intermediate', icon: Brain },
+  advanced:     { color: '#ffaa00', glow: 'rgba(255,170,0,0.3)',   label: 'Advanced',     icon: Zap },
+  expert:       { color: '#ff3366', glow: 'rgba(255,51,102,0.3)', label: 'Expert',       icon: ShieldAlert },
+};
+
+interface Feedback {
+  score: number;
+  rationale: string;
+  biasDetected?: string | null;
+  correctAnswer?: string | null;
+  lesson?: string | null;
+}
+
+function ChallengeCard({ challenge, onSelect, isSelected }: { challenge: Challenge; onSelect: () => void; isSelected: boolean }) {
+  const diff = DIFFICULTY_CONFIG[challenge.difficulty?.toLowerCase() ?? 'beginner'];
+  const DiffIcon = diff.icon;
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <motion.div
+      whileHover={{ y: -4, rotateY: 1 }}
+      onHoverStart={() => setHovered(true)}
+      onHoverEnd={() => setHovered(false)}
+      style={{ transformStyle: 'preserve-3d' }}
+    >
+      <button
+        onClick={onSelect}
+        className="w-full text-left rounded-xl border overflow-hidden transition-all duration-300"
+        style={{
+          background: isSelected
+            ? `linear-gradient(135deg, ${diff.color}0a 0%, hsl(225,43%,7%) 100%)`
+            : hovered ? 'hsl(225,43%,8%)' : 'hsl(225,43%,7%)',
+          borderColor: isSelected ? `${diff.color}50` : hovered ? 'hsl(225,43%,20%)' : 'hsl(225,43%,15%)',
+          boxShadow: isSelected ? `0 0 25px ${diff.glow}, 0 8px 30px rgba(0,0,0,0.4)` : hovered ? '0 8px 20px rgba(0,0,0,0.3)' : 'none',
+        }}
+      >
+        {/* Top accent bar */}
+        <div className="h-0.5 w-full" style={{ background: isSelected ? diff.color : 'transparent', transition: 'background 0.3s', boxShadow: isSelected ? `0 0 8px ${diff.color}` : 'none' }} />
+        
+        <div className="p-5">
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: `${diff.color}15`, border: `1px solid ${diff.color}30` }}>
+                <DiffIcon className="w-3.5 h-3.5" style={{ color: diff.color }} />
+              </div>
+              <span className="text-[9px] font-orbitron uppercase tracking-widest" style={{ color: diff.color }}>{diff.label}</span>
+            </div>
+            {challenge.timeLimit && (
+              <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-mono">
+                <Clock className="w-3 h-3" />
+                {challenge.timeLimit}s
+              </div>
+            )}
+          </div>
+          <h3 className="font-orbitron font-bold text-sm text-foreground mb-2 leading-snug">{challenge.title}</h3>
+          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{challenge.description}</p>
+          <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center gap-1 text-[10px] font-orbitron text-muted-foreground">
+              <Trophy className="w-3 h-3" />
+              <span>{challenge.maxScore} pts</span>
+            </div>
+            {isSelected && (
+              <div className="flex items-center gap-1 text-[10px] font-orbitron" style={{ color: diff.color }}>
+                ACTIVE <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: diff.color }} />
+              </div>
+            )}
+          </div>
+        </div>
+      </button>
+    </motion.div>
+  );
+}
+
+function ScoreDisplay({ score, maxScore }: { score: number; maxScore?: number }) {
+  const pct = maxScore ? Math.round((score / maxScore) * 100) : score;
+  const color = pct >= 75 ? '#00ff88' : pct >= 50 ? '#ffaa00' : '#ff3366';
+  return (
+    <div className="flex items-center gap-4">
+      <div className="relative w-20 h-20">
+        <svg viewBox="0 0 80 80" className="w-full h-full -rotate-90">
+          <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="6" />
+          <motion.circle
+            cx="40" cy="40" r="32"
+            fill="none"
+            stroke={color}
+            strokeWidth="6"
+            strokeLinecap="round"
+            strokeDasharray={`${2 * Math.PI * 32}`}
+            initial={{ strokeDashoffset: 2 * Math.PI * 32 }}
+            animate={{ strokeDashoffset: 2 * Math.PI * 32 * (1 - pct / 100) }}
+            transition={{ duration: 1.2, ease: 'easeOut' }}
+            style={{ filter: `drop-shadow(0 0 4px ${color})` }}
+          />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="font-orbitron font-black text-lg" style={{ color }}>{score}</span>
+        </div>
+      </div>
+      <div>
+        <p className="font-orbitron text-xs text-muted-foreground uppercase tracking-widest mb-0.5">Your Score</p>
+        <p className="font-orbitron font-bold text-xl" style={{ color }}>{pct}%</p>
+        <p className="text-xs text-muted-foreground">{maxScore ? `out of ${maxScore}` : 'points'}</p>
+      </div>
+    </div>
+  );
+}
 
 export default function Challenges() {
   const { data: challenges, isLoading } = useListChallenges();
-  const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
-  const [selectedOption, setSelectedOption] = useState<string>("");
-  const [result, setResult] = useState<any>(null);
-  
-  const submitAttempt = useSubmitChallengeAttempt();
-
-  const handleStart = (c: Challenge) => {
-    setActiveChallenge(c);
-    setSelectedOption("");
-    setResult(null);
-  };
+  const submit = useSubmitChallengeAttempt();
+  const { toast } = useToast();
+  const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
+  const [answer, setAnswer] = useState('');
+  const [feedback, setFeedback] = useState<Feedback | null>(null);
 
   const handleSubmit = () => {
-    if (!activeChallenge || !selectedOption) return;
-
-    submitAttempt.mutate(
-      { id: activeChallenge.id, data: { selectedOptionId: selectedOption, timeSpentSeconds: 15 } },
+    if (!selectedChallenge || !answer.trim()) return;
+    submit.mutate(
+      { id: selectedChallenge.id, data: { response: answer } },
       {
         onSuccess: (res) => {
-          setResult(res);
+          setFeedback(res as unknown as Feedback);
+          toast({ title: `Challenge scored: ${(res as any).score} points`, description: (res as any).rationale?.slice(0, 80) });
+        },
+        onError: () => {
+          toast({ title: 'Submission failed', variant: 'destructive' });
         }
       }
     );
   };
 
-  if (activeChallenge) {
-    return (
-      <div className="max-w-3xl mx-auto py-8">
-        <Button variant="ghost" onClick={() => setActiveChallenge(null)} className="mb-6 text-muted-foreground">
-          ← Abandon Challenge
-        </Button>
+  const handleNewChallenge = () => {
+    setSelectedChallenge(null);
+    setAnswer('');
+    setFeedback(null);
+  };
 
-        <Card className={`bg-card/60 backdrop-blur-md overflow-hidden relative transition-colors duration-500 ${result ? (result.correct ? 'border-accent/50' : 'border-destructive/50') : 'border-primary/20 shadow-[0_0_30px_rgba(0,212,255,0.05)]'}`}>
-          {result && (
-            <div className={`absolute top-0 left-0 w-full h-1 ${result.correct ? 'bg-accent shadow-[0_0_15px_rgba(0,255,136,1)]' : 'bg-destructive shadow-[0_0_15px_rgba(255,51,102,1)]'}`} />
-          )}
-          
-          <CardHeader className="border-b border-border/50 pb-6">
-            <div className="flex justify-between items-start mb-4">
-              <span className={`text-[10px] uppercase tracking-widest px-2 py-1 rounded border ${activeChallenge.difficulty === 'advanced' ? 'border-destructive text-destructive bg-destructive/10' : activeChallenge.difficulty === 'intermediate' ? 'border-chart-3 text-chart-3 bg-chart-3/10' : 'border-accent text-accent bg-accent/10'}`}>
-                {activeChallenge.difficulty}
-              </span>
-              <span className="text-xs font-orbitron text-primary flex items-center gap-1">
-                <Sparkles className="w-3 h-3" /> {activeChallenge.pointsReward} PTS
-              </span>
-            </div>
-            <CardTitle className="text-2xl font-orbitron">{activeChallenge.title}</CardTitle>
-            <CardDescription className="text-base">{activeChallenge.description}</CardDescription>
-          </CardHeader>
-
-          <CardContent className="pt-8">
-            <div className="p-6 bg-background/50 border-l-4 border-primary rounded-r-lg mb-8 relative">
-              <ShieldAlert className="absolute top-4 right-4 w-12 h-12 text-primary/10" />
-              <p className="text-foreground leading-relaxed italic">"{activeChallenge.scenario}"</p>
-            </div>
-
-            {!result ? (
-              <RadioGroup value={selectedOption} onValueChange={setSelectedOption} className="space-y-4">
-                {activeChallenge.options.map((opt) => (
-                  <Label
-                    key={opt.id}
-                    className={`flex items-start p-4 border rounded-lg cursor-pointer transition-all ${selectedOption === opt.id ? 'border-primary bg-primary/5 shadow-[0_0_10px_rgba(0,212,255,0.1)]' : 'border-border/50 bg-background hover:border-primary/30 hover:bg-primary/5'}`}
-                  >
-                    <RadioGroupItem value={opt.id} className="mt-1 sr-only" />
-                    <div className={`w-4 h-4 rounded-full border mt-0.5 mr-4 flex items-center justify-center ${selectedOption === opt.id ? 'border-primary' : 'border-muted-foreground'}`}>
-                      {selectedOption === opt.id && <div className="w-2 h-2 rounded-full bg-primary" />}
-                    </div>
-                    <span className="text-sm leading-relaxed">{opt.text}</span>
-                  </Label>
-                ))}
-              </RadioGroup>
-            ) : (
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-                <div className={`p-6 rounded-lg border flex items-start gap-4 ${result.correct ? 'bg-accent/5 border-accent/30' : 'bg-destructive/5 border-destructive/30'}`}>
-                  {result.correct ? <CheckCircle2 className="w-8 h-8 text-accent shrink-0" /> : <XCircle className="w-8 h-8 text-destructive shrink-0" />}
-                  <div>
-                    <h3 className={`font-orbitron font-bold text-lg mb-2 ${result.correct ? 'text-accent' : 'text-destructive'}`}>
-                      {result.correct ? 'SUCCESS: DECISION VALIDATED' : 'FAILURE: CRITICAL ERROR'}
-                    </h3>
-                    <p className="text-sm text-foreground mb-4">{result.explanation}</p>
-                    
-                    <div className="bg-background/80 p-3 rounded border border-border text-sm">
-                      <span className="text-primary font-bold mr-2">AI FEEDBACK:</span>
-                      <span className="text-muted-foreground">{result.aiFeedback}</span>
-                    </div>
-
-                    {result.correct && (
-                      <p className="mt-4 text-xs font-orbitron text-accent flex items-center gap-1 animate-pulse">
-                        <Sparkles className="w-4 h-4" /> +{result.pointsEarned} POINTS EARNED
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </CardContent>
-
-          <CardFooter className="bg-background/30 border-t border-border/50 p-6">
-            {!result ? (
-              <Button 
-                className="w-full font-orbitron tracking-widest h-12" 
-                disabled={!selectedOption || submitAttempt.isPending}
-                onClick={handleSubmit}
-              >
-                {submitAttempt.isPending ? "EVALUATING..." : "COMMIT DECISION"}
-              </Button>
-            ) : (
-              <Button className="w-full font-orbitron tracking-widest h-12" onClick={() => setActiveChallenge(null)}>
-                RETURN TO ARENA
-              </Button>
-            )}
-          </CardFooter>
-        </Card>
-      </div>
-    );
-  }
+  const selectedDiff = selectedChallenge ? (DIFFICULTY_CONFIG[selectedChallenge.difficulty?.toLowerCase() ?? 'beginner']) : null;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-12">
+    <div className="max-w-6xl mx-auto space-y-7 pb-12">
       <div>
         <h1 className="text-4xl font-orbitron font-bold text-foreground flex items-center gap-3">
           <Swords className="text-primary w-8 h-8" />
           Challenge Arena
         </h1>
-        <p className="text-muted-foreground mt-2 font-light">Test your instincts in simulated high-pressure scenarios.</p>
+        <p className="text-muted-foreground mt-2 font-light">Test your investor psychology under pressure. AI-scored decisions.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {isLoading ? (
-          Array(6).fill(0).map((_, i) => <Skeleton key={i} className="h-48 rounded-xl bg-card border border-border" />)
-        ) : challenges?.map((challenge, i) => (
-          <motion.div
-            key={challenge.id}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: i * 0.05 }}
-          >
-            <Card className="bg-card/40 border-border hover:border-primary/50 transition-all duration-300 h-full flex flex-col group relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-                <AlertTriangle className="w-32 h-32" />
-              </div>
-              <CardHeader className="pb-4 relative z-10">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground border border-border px-2 py-0.5 rounded bg-background/50">
-                    {challenge.category.replace('_', ' ')}
-                  </span>
-                  <span className="text-xs font-orbitron text-primary border border-primary/20 bg-primary/10 px-2 py-0.5 rounded">
-                    {challenge.pointsReward} PTS
-                  </span>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Challenge Grid */}
+        <div className="lg:col-span-5">
+          {isLoading ? (
+            <div className="grid grid-cols-1 gap-3">
+              {Array(5).fill(0).map((_, i) => <Skeleton key={i} className="h-36 rounded-xl" />)}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3">
+              {challenges?.map(ch => (
+                <ChallengeCard
+                  key={ch.id}
+                  challenge={ch}
+                  isSelected={selectedChallenge?.id === ch.id}
+                  onSelect={() => { setSelectedChallenge(ch); setAnswer(''); setFeedback(null); }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Detail / Response Panel */}
+        <div className="lg:col-span-7">
+          <AnimatePresence mode="wait">
+            {!selectedChallenge ? (
+              <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full flex items-center justify-center text-center py-20">
+                <div>
+                  <Swords className="w-16 h-16 text-muted-foreground/20 mx-auto mb-5" />
+                  <p className="font-orbitron text-lg text-muted-foreground/50 uppercase tracking-widest">Select a Challenge</p>
+                  <p className="text-sm text-muted-foreground/40 mt-2">5 gamified investing tests. Are you rational under pressure?</p>
                 </div>
-                <CardTitle className="font-orbitron text-lg leading-tight group-hover:text-primary transition-colors">{challenge.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 relative z-10">
-                <p className="text-sm text-muted-foreground line-clamp-2">{challenge.description}</p>
-              </CardContent>
-              <CardFooter className="pt-0 relative z-10">
-                <Button 
-                  onClick={() => handleStart(challenge)} 
-                  variant="ghost" 
-                  className="w-full justify-between border border-border/50 group-hover:border-primary/30 group-hover:bg-primary/5 group-hover:text-primary transition-all"
+              </motion.div>
+            ) : (
+              <motion.div key={selectedChallenge.id} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-5">
+                {/* Challenge Header */}
+                <div
+                  className="p-6 rounded-xl border relative overflow-hidden"
+                  style={{
+                    background: `linear-gradient(135deg, ${selectedDiff?.color}08, hsl(225,43%,7%))`,
+                    borderColor: `${selectedDiff?.color}30`,
+                  }}
                 >
-                  <span className="font-orbitron text-xs tracking-wider">INITIATE</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </CardFooter>
-            </Card>
-          </motion.div>
-        ))}
+                  <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: `linear-gradient(90deg, transparent, ${selectedDiff?.color}60, transparent)` }} />
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-[9px] font-orbitron uppercase tracking-widest px-2 py-0.5 rounded border" style={{ color: selectedDiff?.color, borderColor: `${selectedDiff?.color}40`, background: `${selectedDiff?.color}12` }}>
+                          {selectedDiff?.label}
+                        </span>
+                        {selectedChallenge.maxScore && (
+                          <span className="text-[10px] font-mono text-muted-foreground flex items-center gap-1">
+                            <Trophy className="w-3 h-3 text-chart-3" />{selectedChallenge.maxScore} pts
+                          </span>
+                        )}
+                      </div>
+                      <h2 className="font-orbitron font-bold text-xl text-foreground mb-2">{selectedChallenge.title}</h2>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{selectedChallenge.description}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Scenario */}
+                {selectedChallenge.scenario && (
+                  <div className="p-5 rounded-xl border border-border/40 bg-background/30">
+                    <p className="text-[10px] font-orbitron text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                      <AlertTriangle className="w-3 h-3 text-chart-3" /> Scenario
+                    </p>
+                    <p className="text-sm text-foreground/90 leading-relaxed">{selectedChallenge.scenario}</p>
+                  </div>
+                )}
+
+                {/* Question */}
+                {selectedChallenge.question && (
+                  <div className="p-4 rounded-xl border-l-4 bg-primary/5" style={{ borderColor: selectedDiff?.color }}>
+                    <p className="text-base text-foreground font-medium leading-relaxed">{selectedChallenge.question}</p>
+                  </div>
+                )}
+
+                {/* Feedback or Response */}
+                <AnimatePresence mode="wait">
+                  {feedback ? (
+                    <motion.div key="feedback" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+                      {/* Score */}
+                      <div className="p-5 rounded-xl border border-border/50 bg-card/40 flex items-center gap-6">
+                        <ScoreDisplay score={feedback.score} maxScore={selectedChallenge.maxScore} />
+                        <div className="flex-1">
+                          {feedback.biasDetected && (
+                            <div className="mb-3">
+                              <p className="text-[10px] font-orbitron text-destructive/80 uppercase tracking-widest mb-1">Bias Detected</p>
+                              <p className="font-orbitron font-bold text-destructive capitalize">{feedback.biasDetected.replace(/_/g, ' ')}</p>
+                            </div>
+                          )}
+                          <p className="text-[10px] font-orbitron text-muted-foreground uppercase tracking-widest mb-1">AI Rationale</p>
+                          <p className="text-xs text-foreground/80 leading-relaxed">{feedback.rationale}</p>
+                        </div>
+                      </div>
+
+                      {feedback.correctAnswer && (
+                        <div className="p-4 rounded-xl border border-accent/20 bg-accent/5">
+                          <p className="text-[10px] font-orbitron text-accent uppercase tracking-widest mb-2 flex items-center gap-2">
+                            <CheckCircle2 className="w-3 h-3" /> Optimal Approach
+                          </p>
+                          <p className="text-sm text-foreground/90 leading-relaxed">{feedback.correctAnswer}</p>
+                        </div>
+                      )}
+
+                      {feedback.lesson && (
+                        <div className="p-4 rounded-xl border border-primary/20 bg-primary/5">
+                          <p className="text-[10px] font-orbitron text-primary uppercase tracking-widest mb-2 flex items-center gap-2">
+                            <Sparkles className="w-3 h-3" /> Key Lesson
+                          </p>
+                          <p className="text-sm text-foreground/80 italic">"{feedback.lesson}"</p>
+                        </div>
+                      )}
+
+                      <Button onClick={handleNewChallenge} variant="outline" className="w-full font-orbitron text-xs tracking-widest h-11 border-border/50">
+                        Try Another Challenge <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </motion.div>
+                  ) : (
+                    <motion.div key="input" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+                      <Textarea
+                        value={answer}
+                        onChange={e => setAnswer(e.target.value)}
+                        placeholder="Write your decision and reasoning here. Be specific — the AI scores based on quality of thought, not just the answer..."
+                        className="min-h-[140px] resize-none bg-background/60 border-border/50 focus-visible:border-primary/50 text-sm font-light"
+                      />
+                      <Button
+                        onClick={handleSubmit}
+                        disabled={!answer.trim() || submit.isPending}
+                        className="scanning-button w-full h-12 font-orbitron font-bold tracking-widest border-2 border-primary text-primary hover:bg-primary hover:text-black transition-all"
+                        style={{ background: answer.trim() ? 'rgba(0,212,255,0.08)' : undefined }}
+                      >
+                        {submit.isPending ? (
+                          <><div className="w-4 h-4 border-2 border-primary/50 border-t-primary rounded-full animate-spin mr-2" /> ANALYZING...</>
+                        ) : (
+                          <><Sparkles className="w-4 h-4 mr-2" /> SUBMIT FOR AI SCORING</>
+                        )}
+                      </Button>
+                      <p className="text-[10px] text-muted-foreground text-center font-orbitron tracking-wider">AI will score your response, detect biases, and provide the optimal approach</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );
